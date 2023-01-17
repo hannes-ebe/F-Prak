@@ -19,20 +19,21 @@ class data_class():
         self.U=-np.array([0.25*i for i in range(1,len(I)+1)])
         self.I_alt=I_alt
         self.I=I
-        self.Ie=[0]
+        self.Ie=I[0]
     def plot(self,log):
-        fig = plt.figure(figsize=(5, 5))
-        gs = GridSpec(5, 5)
-        fig1 = fig.add_subplot(gs[:5, :])
+        fig = plt.figure(figsize=(8, 5))
+        gs = GridSpec(8, 5)
+        fig1 = fig.add_subplot(gs[:, :])
         fig1.set_title("Selbstaufgenommene Kennlinie")
         fig1.set_ylabel("I in mA")
         fig1.set_xlabel("U in V")
         #fig1.plot(U,I, marker="o",label="2000$\mu$")
         if log:
             fig1.set_yscale("log")
-        fig1.plot(self.U[40-11:40],self.I_alt[40-11:40], marker="o",)
+        fig1.plot(self.U,self.I_alt, marker="o",)
         plt.tight_layout()
-        plt.show()
+        plt.savefig("plots/figure.pdf")
+        #plt.show()
     def get_intersection(self):
         U=self.U
         I=self.I_alt
@@ -58,19 +59,20 @@ class data_class():
         regress2 = linregress(self.U[:20], self.I_log[:20])
         regress3 = linregress(self.U[27:30],self.I_log[27:30])
         print(regress1,regress2)
-        fig = plt.figure(figsize=(5, 5))
-        gs = GridSpec(5, 5)
-        fig1 = fig.add_subplot(gs[:5, :])
+        fig = plt.figure(figsize=(8, 5))
+        gs = GridSpec(8, 5)
+        fig1 = fig.add_subplot(gs[:, :])
         fig1.set_title("Selbstaufgenommene Kennlinie")
         fig1.set_ylabel("I in mA")
         fig1.set_xlabel("U in V")
         fig1.plot(self.U,self.I_log, marker="o",label="Messwerte")
         fig1.plot(self.U[25:40], regress1.slope*np.array(self.U[25:40])+regress1.intercept,label="Fit $U<\Phi_P$")
-        fig1.plot(self.U[:30], regress2.slope * np.array(self.U[:30]) + regress2.intercept,label="Fit $U>\Phi_P$")
-        fig1.plot(self.U[27:30], regress3.slope * np.array(self.U[27:30]) + regress3.intercept, label="Fit $U>\Phi_P$")
+        fig1.plot(self.U[:30], regress2.slope * np.array(self.U[:30]) + regress2.intercept,label="Fit $U>\Phi_P$ Variante 1")
+        fig1.plot(self.U[25:32], regress3.slope * np.array(self.U[25:32]) + regress3.intercept, label="Fit $U>\Phi_P$ Variante 2")
         plt.tight_layout()
         plt.legend()
-        plt.show()
+        plt.savefig("plots/log.pdf")
+        #plt.show()
         #print(regress1)
         # print(regress2)
         #get etemps out of slope of the staright
@@ -86,18 +88,35 @@ class data_class():
                     +regress2.intercept_stderr/(regress1.slope-regress2.slope)\
                     +regress1.stderr*(regress1.intercept-regress2.intercept)/(regress1.slope-regress2.slope)**2\
                     +regress2.stderr*(regress1.intercept-regress2.intercept)/(regress1.slope-regress2.slope)**2
+        self.phip2 = np.roots([regress1.slope - regress3.slope, regress1.intercept - regress3.intercept])
+        self.Dphip2 = regress1.intercept_stderr / (regress1.slope - regress3.slope) \
+                      + regress3.intercept_stderr / (regress1.slope - regress3.slope) \
+                      + regress1.stderr * (regress1.intercept - regress3.intercept) / (
+                                  regress1.slope - regress3.slope) ** 2 \
+                      + regress3.stderr * (regress1.intercept - regress3.intercept) / (
+                                  regress1.slope - regress3.slope) ** 2
         #get etemp out of the difference from plasamapotential and floating potential
         self.Te4=(self.floating-self.phip1)*const.e/const.k/np.log(0.6*np.sqrt(2*np.pi*const.electron_mass/mass_ar))
         self.DTe4=np.abs(self.Dfloating*const.e/const.k/np.log(0.6*np.sqrt(2*np.pi*const.electron_mass/mass_ar)))\
                   +np.abs(self.Dphip1*const.e/const.k/np.log(0.6*np.sqrt(2*np.pi*const.electron_mass/mass_ar)))
+        self.Te5 = (self.floating - self.phip2) * const.e / const.k / np.log(0.6 * np.sqrt(2 * np.pi * const.electron_mass / mass_ar))
+        self.DTe5 = np.abs(self.Dfloating * const.e / const.k / np.log(0.6 * np.sqrt(2 * np.pi * const.electron_mass / mass_ar))) \
+                    + np.abs(self.Dphip2 * const.e / const.k / np.log(0.6 * np.sqrt(2 * np.pi * const.electron_mass / mass_ar)))
         #get density
-        self.ne=self.Ie/(A*const.e*np.sqrt(const.k*self.Te3/(2*np.pi*const.electron_mass)))
-        self.ni=self.Ic/(0.6*const.e*A*np.sqrt(const.k*self.Te3/mass_ar))
+        print(self.Ie)
+        self.ne1=self.Ie/(A*const.e*np.sqrt(const.k*self.Te4/(2*np.pi*const.electron_mass)))
+        self.ne2 = self.Ie / (A * const.e * np.sqrt(const.k * self.Te5 / (2 * np.pi * const.electron_mass)))
+        self.ni1=self.Ic/(0.6*const.e*A*np.sqrt(const.k*self.Te4/mass_ar))
+        self.ni2 = self.Ic / (0.6 * const.e * A * np.sqrt(const.k * self.Te5 / mass_ar))
         print("Temperatur im Anlaufbereich",self.Te1, self.DTe1)
-        print("Temperatur im E Sättigung",self.Te2, self.DTe2)
-        print("Temperatur im E Sättigung alternativ", self.Te3, self.DTe3)
-        print("Plasma Potential",self.phip1,self.Dphip1)
-        print("Temperatur aus Differenz der Potentiale",self.Te4,self.DTe4)
+        print("Temperatur im E Sättigung Variante 1",self.Te2, self.DTe2)
+        print("Temperatur im E Sättigung Variante 2", self.Te3, self.DTe3)
+        print("Plasma Potential Variante 1",self.phip1,self.Dphip1)
+        print("Plasma Potential Variante 2", self.phip2, self.Dphip2)
+        print("Temperatur aus Differenz der Potentiale Variante 1",self.Te4,self.DTe4)
+        print("Temperatur aus Differenz der Potentiale Variante 2", self.Te5, self.DTe5)
+        print("Elektronendichte Variante 1 und 2",self.ne1,self.ne2)
+        print("Elektronendichte Variante 1 und 2", self.ni1, self.ni2)
 
 def main():
     #init data
@@ -107,6 +126,7 @@ def main():
     #get ion current and subtract it from the dataset
     data.get_ioncurr()
     #get etemps
+    data.plot(False)
     data.get_turiningpoint()
     data.get_etemps()
 
