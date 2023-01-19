@@ -11,17 +11,18 @@ plt.rcParams['font.size']=15
 
 
 
-data=pd.read_csv("data/100V_-15_5.txt", sep="\t")
+data=pd.read_csv("data/100V_65_85.txt", sep="\t")
 U=data["% U (Volt)"]
-I=data["I (A)"]
+I=data["I (A)"]*10**6
 print(data,U)
 
-fig = plt.figure(figsize=(5, 5))
-gs = GridSpec(5, 5)
-fig1 = fig.add_subplot(gs[:5, :])
-fig1.set_title("Selbstaufgenommene Kennlinie")
-fig1.set_ylabel("I in mA")
+fig = plt.figure(figsize=(8, 5))
+gs = GridSpec(10, 5)
+fig1 = fig.add_subplot(gs[:, :])
+fig1.set_title("Messung mit Anode als Kathode")
+fig1.set_ylabel("I in $\mu$A")
 fig1.set_xlabel("U in V")
 fig1.plot(U,I)
 plt.tight_layout()
+plt.savefig("plots/an_kat.pdf")
 plt.show()
