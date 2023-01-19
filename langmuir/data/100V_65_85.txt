@@ -1,5 +1,3 @@
-% Langmuir characteristic curve
-
 % U (Volt)	I (A)
 65.000000	-3.275927E-7
 65.199997	3.828900E-7

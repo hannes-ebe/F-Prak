@@ -10,6 +10,7 @@ plt.rcParams['font.size']=15
 
 mass_ar=39.948*const.u
 A=9.2e-6
+DA=0.9e-6
 class data_class():
     def __init__(self):
         I=np.array([287,287,286,285,284,282,281,276,274,273,271,269,268,266,264,262,259,256,253,249,246,241,235,229,221,211,199,177,136,96,65,42,26,15,8,4,2,1])
@@ -17,9 +18,11 @@ class data_class():
         I_alt=np.array([14.6,8.2,4.3,2.2,1.0,0.5,0.2,0.0,0.0])
         I_alt=np.append(I[:len(I)-len(I_alt)-18],np.append(I_alt,np.array([-0.1 for i in range(18)])))
         self.U=-np.array([0.25*i for i in range(1,len(I)+1)])
-        self.I_alt=I_alt
-        self.I=I
-        self.Ie=I[0]
+        self.I_alt=I_alt*1e-6
+        self.I=I*1e-6
+        self.Ie=self.I[0]
+        self.DIe=0.5*10**-7
+        print(self.Ie)
     def plot(self,log):
         fig = plt.figure(figsize=(8, 5))
         gs = GridSpec(8, 5)
@@ -45,6 +48,7 @@ class data_class():
                 print("Floating Pot",self.floating)
     def get_ioncurr(self):
         self.Ic=self.I_alt[np.where(self.U==-13.75)]
+        self.DIc=0.05e-6
         print("Ion Current",self.Ic)
         self.I_alt=np.array(self.I_alt)-self.Ic
     def get_turiningpoint(self):
@@ -106,8 +110,20 @@ class data_class():
         print(self.Ie)
         self.ne1=self.Ie/(A*const.e*np.sqrt(const.k*self.Te4/(2*np.pi*const.electron_mass)))
         self.ne2 = self.Ie / (A * const.e * np.sqrt(const.k * self.Te5 / (2 * np.pi * const.electron_mass)))
+        self.Dne1 = self.DIe / (A * const.e * np.sqrt(const.k * self.Te4 / (2 * np.pi * const.electron_mass))) \
+                    + DA * self.Ie / (A ** 2 * const.e * np.sqrt(const.k * self.Te4 / (2 * np.pi * const.electron_mass))) \
+                    + self.DTe4 * self.Ie / (2 * A * const.e) * np.sqrt((2 * np.pi * const.electron_mass) / (const.k * self.Te4 ** 3))
+        self.Dne2 = self.DIe/(A*const.e*np.sqrt(const.k*self.Te5/(2*np.pi*const.electron_mass)))\
+                    +DA*self.Ie / (A**2 * const.e * np.sqrt(const.k * self.Te5 / (2 * np.pi * const.electron_mass)))\
+                    +self.DTe5*self.Ie / (2*A * const.e)*np.sqrt((2 * np.pi * const.electron_mass)/(const.k * self.Te5**3))
         self.ni1=self.Ic/(0.6*const.e*A*np.sqrt(const.k*self.Te4/mass_ar))
+        self.Dni1 = self.DIc / (0.6 * const.e * A * np.sqrt(const.k * self.Te4 / mass_ar))+\
+                    self.Ic *self.DTe4/ (2*0.6 * const.e * A )*np.sqrt(mass_ar/(const.k * self.Te4**3))\
+                    +DA*self.Ic / (0.6 * const.e * A**2 * np.sqrt(const.k * self.Te4 / mass_ar))
         self.ni2 = self.Ic / (0.6 * const.e * A * np.sqrt(const.k * self.Te5 / mass_ar))
+        self.Dni2 = self.DIc / (0.6 * const.e * A * np.sqrt(const.k * self.Te5 / mass_ar)) + \
+                    self.Ic * self.DTe5 / (2 * 0.6 * const.e * A) * np.sqrt(mass_ar / (const.k * self.Te5 ** 3)) \
+                    + DA * self.Ic / (0.6 * const.e * A ** 2 * np.sqrt(const.k * self.Te5 / mass_ar))
         print("Temperatur im Anlaufbereich",self.Te1, self.DTe1)
         print("Temperatur im E Sättigung Variante 1",self.Te2, self.DTe2)
         print("Temperatur im E Sättigung Variante 2", self.Te3, self.DTe3)
@@ -115,8 +131,10 @@ class data_class():
         print("Plasma Potential Variante 2", self.phip2, self.Dphip2)
         print("Temperatur aus Differenz der Potentiale Variante 1",self.Te4,self.DTe4)
         print("Temperatur aus Differenz der Potentiale Variante 2", self.Te5, self.DTe5)
-        print("Elektronendichte Variante 1 und 2",self.ne1,self.ne2)
-        print("Elektronendichte Variante 1 und 2", self.ni1, self.ni2)
+        print("Elektronendichte Variante 2",self.ne1,self.Dne1)
+        print("Elektronendichte Variante 2", self.ne2, self.Dne2)
+        print("Ionendichte Variante 1", self.ni1, self.Dni1)
+        print("Ionendichte Variante 2", self.ni2, self.Dni2)
 
 def main():
     #init data
