@@ -5,7 +5,7 @@ import matplotlib as mpl
 from matplotlib.gridspec import GridSpec
 from scipy.optimize import curve_fit
 mpl.use("QT5Agg")
-plt.rcParams['font.size']=15
+plt.rcParams['font.size']=18
 #load in data
 theta=np.array([22.5*i for i in range(17)])
 theta_fine=np.array([1*i for i in range(360)])
