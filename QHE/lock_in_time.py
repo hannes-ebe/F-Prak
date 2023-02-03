@@ -36,7 +36,7 @@ class data_class:
         fig = plt.figure(figsize=(11, 6))
         gs = GridSpec(5, 5)
         fig1 = fig.add_subplot(gs[:5, :])
-        fig1.set_title("Spannung bei einen Wechsel der Amplitude des Eingangssignals")
+        fig1.set_title("Spannung bei einem Wechsel der Amplitude des Eingangssignals")
         fig1.set_ylabel("$U$ in V")
         fig1.set_xlabel("Zeit in s")
         fig1.scatter(self.data["CH1_x"][:],self.data["CH1_y"][:],marker="o",s=5,label="R-Ausgang", color="b")
@@ -47,7 +47,7 @@ class data_class:
         plt.legend()
         plt.savefig("plots/U_zeit_bsp.pdf")
         # plt.savefig("plots/U(theta).pdf")
-        plt.show()
+        # plt.show()
 
 
 
@@ -67,7 +67,7 @@ def main():
     fig = plt.figure(figsize=(11, 6))
     gs = GridSpec(8, 5)
     fig1 = fig.add_subplot(gs[:, :])
-    fig1.set_title("Ausgangsspannung nach einen Wechsel der Amplitude des Eingangssignals")
+    fig1.set_title("Ausgangsspannung nach einem Wechsel der Amplitude des Eingangssignals")
     fig1.set_ylabel("$U_{out}$ in V")
     fig1.set_xlabel("$t-t_0$ in s")
     for i in range(4):
