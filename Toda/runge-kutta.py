@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import os
 
 print("initialize calculation")
-Q0=0
-I0=0
+Q0=1
+I0=1
 np.savetxt("start.txt",[Q0,I0])
 U_pp=40*10e-3
 L=65*1e-3
