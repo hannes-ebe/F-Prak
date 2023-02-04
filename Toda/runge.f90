@@ -3,7 +3,7 @@ program runge_kutta
     !declare precision
     integer, parameter :: ikind=selected_real_kind(p=20)
     ! declare variables
-    real(kind=ikind), dimension(2d3) :: Q, I, Tl
+    real(kind=ikind), dimension(1d1) :: Q, I, Tl
     real(kind=ikind) :: dt,t,Q0, I0
     integer :: ci, steps
     !setup start varibles
@@ -30,32 +30,49 @@ program runge_kutta
     print *, "test"
 end program runge_kutta
 
-subroutine runge_kutta_step(t,dt,Q,I,Q_new,I_new)
+subroutine runge_kutta_step(t,dt,Q,I,phi,Q_new,I_new,phi_new)
     integer, parameter :: ikind=selected_real_kind(p=20)
-    real(kind=ikind) :: Q,I,Q_new,I_new,Qk1,Qk2,Qk3,Qk4,Ik1,Ik2,Ik3,Ik4
+    real(kind=ikind) :: Q,I,Q_new,I_new,phi,phi_new
+    real(kind=ikind) :: Qk1,Qk2,Qk3,Qk4,Ik1,Ik2,Ik3,Ik4,pk1,pk2,pk3,pk4
     real(kind=ikind) :: t,dt
+    real(kind=ikind) :: U_pp,L,R,U_S,C0,omega
+    open(50,file="schwingkreis.txt")
+    read(50,*)  U_pp,L,R,U_S,C0,omega
     !calculate Qks
-    Qk1=fQ(t,Q,I)
-    Qk2=fQ(t+ dt/2,Q+dt/2*Qk1,I+dt/2*Qk1)
-    Qk3=fQ(t+ dt/2,Q+dt/2*Qk2,I+dt/2*Qk2)
-    Qk4=fQ(t+ dt,Q+dt*Qk3,I+dt*Qk3)
+    Qk1=fQ(t,Q,I,phi)
+    Qk2=fQ(t+ dt/2,Q+dt/2*Qk1,I+dt/2*Qk1,phi+dt/2*Qk1)
+    Qk3=fQ(t+ dt/2,Q+dt/2*Qk2,I+dt/2*Qk2,phi+dt/2*Qk2)
+    Qk4=fQ(t+ dt,Q+dt*Qk3,I+dt*Qk3,phi+dt*Qk3)
     !calculate Iks
-    Ik1=fI(t,Q,I)
-    Ik2=fI(t+ dt/2,Q+dt/2*Ik1,I+dt/2*Ik1)
-    Ik3=fI(t+ dt/2,Q+dt/2*Ik2,I+dt/2*Ik2)
-    Ik4=fI(t+ dt,Q+dt*Ik3,I+dt*Ik3)
+    Ik1=fI(t,Q,I,phi)
+    Ik2=fI(t+ dt/2,Q+dt/2*Ik1,I+dt/2*Ik1,I+dt/2*Qk1,phi+dt/2*Ik1)
+    Ik3=fI(t+ dt/2,Q+dt/2*Ik2,I+dt/2*Ik2,I+dt/2*Qk1,phi+dt/2*Ik2)
+    Ik4=fI(t+ dt,Q+dt*Ik3,I+dt*Ik3,phi+dt*Ik3)
+    !calculate phi ks
+    pk1=fphi(t,Q,I,phi)
+    pk2=fphi(t+ dt/2,Q+dt/2*Ipk1,I+dt/2*pk1,phi+dt/2*pk1)
+    pk3=fphi(t+ dt/2,Q+dt/2*pk2,I+dt/2*pk2,phi+dt/2*pk2)
+    pk4=fphi(t+ dt,Q+dt*pk3,I+dt*pk3,phi+dt*pk3)
     !set new values
     Q_new=Q+(Qk1+2*Qk2+2*Qk3+Qk4)*dt*1/6
     I_new=I+(Ik1+2*Ik2+2*Ik3+Ik4)*dt*1/6
+    phi_new=phi+(pk1+2*pk2+2*pk3+pk4)*dt*1/6
     end subroutine
 
 function fQ(x,q,i)
     integer, parameter :: ikind=selected_real_kind(p=20)
-    real(kind=ikind) :: x,q,i
-    fQ=x
+    real(kind=ikind) :: x,q,i,phi
+    fQ=1!i
    end function
-function fI(x,q,i)
+function fI(x,q,i,phi,U_pp,L,R,U_S,C0)
     integer, parameter :: ikind=selected_real_kind(p=20)
-    real(kind=ikind) :: x,q,i
-    fI=2*x
+    real(kind=ikind) :: x,q,i,phi
+    real(kind=ikind) :: U_pp,L,R,U_S,C0
+    fI=1!U_pp/L*SIN(phi)-R/L*i-U_S/L*(EXP(q/(C0*U_S))-1)
+   end function
+function fphi(x,q,i,phi,omega)
+    integer, parameter :: ikind=selected_real_kind(p=20)
+    real(kind=ikind) :: x,q,i,phi
+    real(kind=ikind) :: omega
+    fphi=1!omega
    end function
