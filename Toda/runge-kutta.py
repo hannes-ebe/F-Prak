@@ -3,9 +3,11 @@ import matplotlib.pyplot as plt
 import os
 
 print("initialize calculation")
-Q0=1
-I0=1
+Q0=0.01
+I0=0
+print("speichern?")
 np.savetxt("start.txt",[Q0,I0])
+print("speichern!")
 U_pp=40*10e-3
 L=65*1e-3
 R=1e3
@@ -22,8 +24,8 @@ t=np.loadtxt("result_time.txt")
 Q=np.loadtxt("result_Q.txt")
 I=np.loadtxt("result_I.txt")
 Q_ref=[t for t in t]
-#plt.plot(t,Q,label="numerik")
-plt.plot(t,I,label="numerik")
+plt.plot(t,Q,label="Ladung")
+plt.plot(t,I,label="Strom")
 #plt.plot(t,Q_ref,label="Theorie")
 plt.legend()
 plt.show()
