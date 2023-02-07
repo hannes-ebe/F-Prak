@@ -1,3 +1,64 @@
+MODULE toda
+    CONTAINS
+    function fQ(x,q,i,phi)
+        integer, parameter :: ikind=selected_real_kind(p=20)
+        real(kind=ikind) :: x,q,i,phi
+        fQ=i
+       end function fQ
+    function fI(x,q,i,phi,U_pp,L,R,U_S,C0)
+        integer, parameter :: ikind=selected_real_kind(p=20)
+        real(kind=ikind) :: x,q,i,phi
+        real(kind=ikind) :: U_pp,L,R,U_S,C0
+        fI=-U_S/L*(EXP(q/(C0*U_S))-1)-R/L*i+U_pp/(2*L)*SIN(phi)!-q/(C0*L)
+       end function
+    function fphi(x,q,i,phi,omega)
+        integer, parameter :: ikind=selected_real_kind(p=20)
+        real(kind=ikind) :: x,q,i,phi
+        real(kind=ikind) :: omega
+        fphi=omega
+       end function
+END MODULE toda
+
+MODULE lorenz
+    CONTAINS
+    function fQ(x,q,i,phi)
+    integer, parameter :: ikind=selected_real_kind(p=20)
+    real(kind=ikind) :: x,q,i,phi
+    fQ=10*(i-q)
+   end function
+function fI(x,q,i,phi,U_pp,L,R,U_S,C0)
+    integer, parameter :: ikind=selected_real_kind(p=20)
+    real(kind=ikind) :: x,q,i,phi
+    fI=q*(28-phi)-i
+   end function
+function fphi(x,q,i,phi,omega)
+    integer, parameter :: ikind=selected_real_kind(p=20)
+    real(kind=ikind) :: x,q,i,phi
+    fphi=q*i-8/3*phi
+   end function
+END MODULE lorenz
+
+MODULE LC
+    CONTAINS
+    function fQ(x,q,i,phi)
+        integer, parameter :: ikind=selected_real_kind(p=20)
+        real(kind=ikind) :: x,q,i,phi
+        fQ=i
+       end function fQ
+    function fI(x,q,i,phi,U_pp,L,R,U_S,C0)
+        integer, parameter :: ikind=selected_real_kind(p=20)
+        real(kind=ikind) :: x,q,i,phi
+        real(kind=ikind) :: U_pp,L,R,U_S,C0
+        fI=-q/(C0*L)-R/L*i+U_pp/(2*L)*SIN(phi)
+       end function
+    function fphi(x,q,i,phi,omega)
+        integer, parameter :: ikind=selected_real_kind(p=20)
+        real(kind=ikind) :: x,q,i,phi
+        real(kind=ikind) :: omega
+        fphi=omega
+    end function
+END MODULE LC
+
 program runge_kutta
     implicit none
     !declare precision
@@ -13,9 +74,10 @@ program runge_kutta
     read(10,*)  Q0,I0
     open(60,file="input/schwingkreis.txt")
     read(60,*)  U_pp,L,R,U_S,C0,omega
+    open(70,file="input/simu.txt")
+    read(70,*)  dt
     steps = SIZE(Q)-1
     steps_to_safe=SIZE(Q_temp)-1
-    dt=1d-10
     Q(1) = Q0
     I(1) = I0
     phi(1) = 0
@@ -49,6 +111,7 @@ program runge_kutta
 end program runge_kutta
 
 subroutine runge_kutta_step(t,dt,Q,I,phi,Q_new,I_new,phi_new,U_pp,L,R,U_S,C0,omega)
+    use toda
     integer, parameter :: ikind=selected_real_kind(p=20)
     real(kind=ikind) :: Q,I,Q_new,I_new,phi,phi_new
     real(kind=ikind) :: Qk1,Qk2,Qk3,Qk4,Ik1,Ik2,Ik3,Ik4,pk1,pk2,pk3,pk4
@@ -74,20 +137,3 @@ subroutine runge_kutta_step(t,dt,Q,I,phi,Q_new,I_new,phi_new,U_pp,L,R,U_S,C0,ome
     phi_new=phi+(pk1+2*pk2+2*pk3+pk4)*dt*1/6
     end subroutine
 
-function fQ(x,q,i,phi)
-    integer, parameter :: ikind=selected_real_kind(p=20)
-    real(kind=ikind) :: x,q,i,phi
-    fQ=i
-   end function
-function fI(x,q,i,phi,U_pp,L,R,U_S,C0)
-    integer, parameter :: ikind=selected_real_kind(p=20)
-    real(kind=ikind) :: x,q,i,phi
-    real(kind=ikind) :: U_pp,L,R,U_S,C0
-    fI=-U_S/L*(EXP(q/(C0*U_S))-1)-R/L*i+U_pp/(2*L)*SIN(phi)!-q/(C0*L)
-   end function
-function fphi(x,q,i,phi,omega)
-    integer, parameter :: ikind=selected_real_kind(p=20)
-    real(kind=ikind) :: x,q,i,phi
-    real(kind=ikind) :: omega
-    fphi=omega
-   end function
