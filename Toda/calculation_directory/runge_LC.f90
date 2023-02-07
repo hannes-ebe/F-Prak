@@ -3,27 +3,39 @@ program runge_kutta
     !declare precision
     integer, parameter :: ikind=selected_real_kind(p=20)
     ! declare variables
-    real(kind=ikind), dimension(1d5) :: Q, I, phi, Tl
+    real(kind=ikind), dimension(5d4) :: Q, I, phi, Tl
+    real(kind=ikind), dimension(1d3) :: Q_temp, I_temp, phi_temp, Tl_temp
     real(kind=ikind) :: dt,t,Q0, I0
     real(kind=ikind) :: U_pp,L,R,U_S,C0,omega
-    integer :: ci, steps
+    integer :: ci, ci_safe,steps,steps_to_safe
     !setup start varibles
     open(10,file="input/start.txt")
     read(10,*)  Q0,I0
     open(60,file="input/schwingkreis.txt")
     read(60,*)  U_pp,L,R,U_S,C0,omega
     steps = SIZE(Q)-1
-    dt=1d-8
+    steps_to_safe=SIZE(Q_temp)-1
+    dt=1d-10
     Q(1) = Q0
     I(1) = I0
     phi(1) = 0
     Tl(1) = 0
     !iterate over time and solve runge kutta
+    print *,"start calculation"
     do ci = 1,steps
-        t=dt*ci
-        Tl(ci+1)=t
-        call runge_kutta_step(t,dt,Q(ci),I(ci),phi(ci),Q(ci+1),I(ci+1),phi(ci+1),U_pp,L,R,U_S,C0,omega)
+        Q_temp(1)=Q(ci)
+        I_temp(1)=I(ci)
+        phi_temp(1)=phi(ci)
+        do ci_safe = 1,steps_to_safe
+            t=dt*ci
+            Tl(ci+1)=t
+            call runge_kutta_step(t,dt,Q_temp(ci_safe),I_temp(ci_safe),phi_temp(ci_safe),Q_temp(ci_safe+1),I_temp(ci_safe+1),phi_temp(ci_safe+1),U_pp,L,R,U_S,C0,omega)
+        end do
+        Q(ci+1)=Q_temp(steps_to_safe)
+        I(ci+1)=I_temp(steps_to_safe)
+        phi(ci+1)=phi_temp(steps_to_safe)
     end do
+    print *,"save data"
     !Save results
     open(20,file="output/result_time.txt")
     write(20,*) Tl
@@ -33,7 +45,7 @@ program runge_kutta
     write(40,*) I
     open(50,file="output/result_phi.txt")
     write(50,*) phi
-    print *, "testa"
+    print *,"Maschine ist fertig"
 end program runge_kutta
 
 subroutine runge_kutta_step(t,dt,Q,I,phi,Q_new,I_new,phi_new,U_pp,L,R,U_S,C0,omega)
@@ -71,8 +83,7 @@ function fI(x,q,i,phi,U_pp,L,R,U_S,C0)
     integer, parameter :: ikind=selected_real_kind(p=20)
     real(kind=ikind) :: x,q,i,phi
     real(kind=ikind) :: U_pp,L,R,U_S,C0
-    !print *,-q/(C0*L)-R/L*i+U_pp/L*SIN(phi)
-    fI=-q/(C0*L)-R/L*i+U_pp/L*SIN(phi)
+    fI=-U_S/L*(EXP(q/(C0*U_S))-1)-R/L*i+U_pp/(2*L)*SIN(phi)!-q/(C0*L)
    end function
 function fphi(x,q,i,phi,omega)
     integer, parameter :: ikind=selected_real_kind(p=20)

@@ -16,7 +16,7 @@ C0=100*1e-12
 omega=2*np.pi*55*10e3
 np.savetxt("schwingkreis.txt",[U_pp,L,R,U_S,C0,omega])
 print("Start calculation")
-os.system("ifort runge.f90 -O -o runge-fortran.sh")
+os.system("ifort runge_alt.f90 -O -o runge-fortran.sh")
 os.system("./runge-fortran.sh")
 print("finished")
 

@@ -6,13 +6,10 @@ program runge_kutta
     real(kind=ikind), dimension(1d5) :: Q, I, phi, Tl
     real(kind=ikind), dimension(1d3) :: Q_temp, I_temp, phi_temp, Tl_temp
     real(kind=ikind) :: dt,t,Q0, I0
-    real(kind=ikind) :: U_pp,L,R,U_S,C0,omega
     integer :: ci, ci_safe,steps,steps_to_safe
     !setup start varibles
     open(10,file="input/start.txt")
     read(10,*)  Q0,I0
-    open(60,file="input/schwingkreis.txt")
-    read(60,*)  U_pp,L,R,U_S,C0,omega
     steps = SIZE(Q)-1
     steps_to_safe=SIZE(Q_temp)-1
     dt=1d-6
@@ -29,7 +26,7 @@ program runge_kutta
         do ci_safe = 1,steps_to_safe
             t=dt*ci
             Tl(ci+1)=t
-            call runge_kutta_step(t,dt,Q_temp(ci_safe),I_temp(ci_safe),phi_temp(ci_safe),Q_temp(ci_safe+1),I_temp(ci_safe+1),phi_temp(ci_safe+1),U_pp,L,R,U_S,C0,omega)
+            call runge_kutta_step(t,dt,Q_temp(ci_safe),I_temp(ci_safe),phi_temp(ci_safe),Q_temp(ci_safe+1),I_temp(ci_safe+1),phi_temp(ci_safe+1))
         end do
         Q(ci+1)=Q_temp(steps_to_safe)
         I(ci+1)=I_temp(steps_to_safe)
@@ -53,20 +50,19 @@ subroutine runge_kutta_step(t,dt,Q,I,phi,Q_new,I_new,phi_new,U_pp,L,R,U_S,C0,ome
     real(kind=ikind) :: Q,I,Q_new,I_new,phi,phi_new
     real(kind=ikind) :: Qk1,Qk2,Qk3,Qk4,Ik1,Ik2,Ik3,Ik4,pk1,pk2,pk3,pk4
     real(kind=ikind) :: t,dt
-    real(kind=ikind) :: U_pp,L,R,U_S,C0,omega, PI
     !calculate Qks
     Qk1=fQ(t,Q,I,phi)
-    pk1=fphi(t,Q,I,phi,omega)
-    Ik1=fI(t,Q,I,phi,U_pp,L,R,U_S,C0)
+    pk1=fphi(t,Q,I,phi)
+    Ik1=fI(t,Q,I,phi)
     Qk2=fQ(t+dt/2,Q+dt/2*Qk1,I+dt/2*Ik1,phi+dt/2*pk1)
-    Ik2=fI(t+dt/2,Q+dt/2*Qk1,I+dt/2*Ik1,phi+dt/2*pk1,U_pp,L,R,U_S,C0)
-    pk2=fphi(t+dt/2,Q+dt/2*Qk1,I+dt/2*Ik1,phi+dt/2*pk1,omega)
+    Ik2=fI(t+dt/2,Q+dt/2*Qk1,I+dt/2*Ik1,phi+dt/2*pk1)
+    pk2=fphi(t+dt/2,Q+dt/2*Qk1,I+dt/2*Ik1,phi+dt/2*pk1)
     Qk3=fQ(t+dt/2,Q+dt/2*Qk2,I+dt/2*Ik2,phi+dt/2*pk2)
-    Ik3=fI(t+dt/2,Q+dt/2*Qk2,I+dt/2*Ik2,phi+dt/2*pk2,U_pp,L,R,U_S,C0)
-    pk3=fphi(t+dt/2,Q+dt/2*Qk2,I+dt/2*Ik2,phi+dt/2*pk2,omega)
+    Ik3=fI(t+dt/2,Q+dt/2*Qk2,I+dt/2*Ik2,phi+dt/2*pk2,)
+    pk3=fphi(t+dt/2,Q+dt/2*Qk2,I+dt/2*Ik2,phi+dt/2*pk2)
     Qk4=fQ(t+dt,Q+dt*Qk3,I+dt*Ik3,phi+dt*pk3)
-    Ik4=fI(t+dt,Q+dt*Qk3,I+dt*Ik3,phi+dt*pk3,U_pp,L,R,U_S,C0)
-    pk4=fphi(t+dt,Q+dt*Qk3,I+dt*Ik3,phi+dt*pk3,omega)
+    Ik4=fI(t+dt,Q+dt*Qk3,I+dt*Ik3,phi+dt*pk3,)
+    pk4=fphi(t+dt,Q+dt*Qk3,I+dt*Ik3,phi+dt*pk3)
     !set new values
     !print *,(Ik1+2*Ik2+2*Ik3+Ik4)*1/6
     Q_new=Q+(Qk1+2*Qk2+2*Qk3+Qk4)*dt*1/6
@@ -77,18 +73,15 @@ subroutine runge_kutta_step(t,dt,Q,I,phi,Q_new,I_new,phi_new,U_pp,L,R,U_S,C0,ome
 function fQ(x,q,i,phi)
     integer, parameter :: ikind=selected_real_kind(p=20)
     real(kind=ikind) :: x,q,i,phi
-    fQ=10*(i-q)!i
+    fQ=10*(i-q)
    end function
 function fI(x,q,i,phi,U_pp,L,R,U_S,C0)
     integer, parameter :: ikind=selected_real_kind(p=20)
     real(kind=ikind) :: x,q,i,phi
-    real(kind=ikind) :: U_pp,L,R,U_S,C0
-    !print *,-q/(C0*L)-R/L*i+U_pp/L*SIN(phi)
-    fI=q*(28-phi)-i!-q/(C0*L)-R/L*i+U_pp/L*SIN(phi)
+    fI=q*(28-phi)-i
    end function
 function fphi(x,q,i,phi,omega)
     integer, parameter :: ikind=selected_real_kind(p=20)
     real(kind=ikind) :: x,q,i,phi
-    real(kind=ikind) :: omega
-    fphi=q*i-8/3*phi!omega
+    fphi=q*i-8/3*phi
    end function
