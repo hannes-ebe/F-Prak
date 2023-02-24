@@ -9,7 +9,8 @@ MODULE toda
         integer, parameter :: ikind=selected_real_kind(p=20)
         real(kind=ikind) :: x,q,i,phi
         real(kind=ikind) :: U_pp,L,R,U_S,C0
-        fI=-U_S/L*(EXP(q/(C0*U_S))-1)-R/L*i+U_pp/(2*L)*SIN(phi)!-q/(C0*L)
+        fI=-U_S/L*(EXP(q/(C0*U_S))-1)-R/L*i+U_pp/(2*L)*SIN(phi)
+        !fI=-EXP(q)+1-0.2*i+5*SIN(phi)!-q/(C0*L)
        end function
     function fphi(x,q,i,phi,omega)
         integer, parameter :: ikind=selected_real_kind(p=20)
@@ -29,11 +30,13 @@ MODULE lorenz
 function fI(x,q,i,phi,U_pp,L,R,U_S,C0)
     integer, parameter :: ikind=selected_real_kind(p=20)
     real(kind=ikind) :: x,q,i,phi
+    real(kind=ikind) :: U_pp,L,R,U_S,C0
     fI=q*(28-phi)-i
    end function
 function fphi(x,q,i,phi,omega)
     integer, parameter :: ikind=selected_real_kind(p=20)
     real(kind=ikind) :: x,q,i,phi
+    real(kind=ikind) :: omega
     fphi=q*i-8/3*phi
    end function
 END MODULE lorenz
@@ -41,18 +44,18 @@ END MODULE lorenz
 MODULE LC
     CONTAINS
     function fQ(x,q,i,phi)
-        integer, parameter :: ikind=selected_real_kind(p=20)
+        integer, parameter :: ikind=selected_real_kind(p=15)
         real(kind=ikind) :: x,q,i,phi
         fQ=i
        end function fQ
     function fI(x,q,i,phi,U_pp,L,R,U_S,C0)
-        integer, parameter :: ikind=selected_real_kind(p=20)
+        integer, parameter :: ikind=selected_real_kind(p=15)
         real(kind=ikind) :: x,q,i,phi
         real(kind=ikind) :: U_pp,L,R,U_S,C0
         fI=-q/(C0*L)-R/L*i+U_pp/(2*L)*SIN(phi)
        end function
     function fphi(x,q,i,phi,omega)
-        integer, parameter :: ikind=selected_real_kind(p=20)
+        integer, parameter :: ikind=selected_real_kind(p=15)
         real(kind=ikind) :: x,q,i,phi
         real(kind=ikind) :: omega
         fphi=omega
@@ -64,7 +67,7 @@ program runge_kutta
     !declare precision
     integer, parameter :: ikind=selected_real_kind(p=20)
     ! declare variables
-    real(kind=ikind), dimension(5d4) :: Q, I, phi, Tl
+    real(kind=ikind), dimension(2d4) :: Q, I, phi, Tl
     real(kind=ikind), dimension(1d3) :: Q_temp, I_temp, phi_temp, Tl_temp
     real(kind=ikind) :: dt,t,Q0, I0
     real(kind=ikind) :: U_pp,L,R,U_S,C0,omega
@@ -107,7 +110,6 @@ program runge_kutta
     write(40,*) I
     open(50,file="output/result_phi.txt")
     write(50,*) phi
-    print *,"Maschine ist fertig"
 end program runge_kutta
 
 subroutine runge_kutta_step(t,dt,Q,I,phi,Q_new,I_new,phi_new,U_pp,L,R,U_S,C0,omega)
